@@ -5,15 +5,18 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+    "path"
 
 	"github.com/NSkelsey/ahimsarest"
 	"github.com/soapboxsys/ombudslib/pubrecdb"
+	"github.com/soapboxsys/ombudslib/ombutil"
 )
 
 func main() {
+    defaultAppPath := ombutil.AppDataDir("Ombudscore", false)
 	var DBPath *string = flag.String(
 		"dbpath",
-		"~/.ombudscore/node/pubrec.db",
+		path.Join(defaultAppPath, "node", "pubrecord.db"),
 		"Path to the public record database",
 	)
 
@@ -35,6 +38,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle(apiPrefix, api)
+    mux.Handle("/", http.FileServer(http.Dir("./static")))
 
 	host := "localhost:" + strconv.Itoa(*port)
 

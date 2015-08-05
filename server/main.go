@@ -231,8 +231,8 @@ func (s *server) retweet(txid, rtext string, tweet *Tweet) error {
 
 	s.cacheSentTweet(tweet)
 
-	status := fmt.Sprintf("It's stored on the web @ http://relay.getombuds.org and in the public record. http://bit.ly/1Mwjq8u https://twitter.com/%s/status/%d",
-		tweet.User.ScreenName, tweet.Id)
+	status := fmt.Sprintf("%s it's stored on the web @ http://relay.getombuds.org and in the public record. https://twitter.com/%s/status/%d",
+		tweet.User.ScreenName, tweet.User.ScreenName, tweet.Id)
 	_, err := s.consumer.Post(
 		"https://api.twitter.com/1.1/statuses/update.json",
 		map[string]string{
