@@ -1,0 +1,36 @@
+{
+	"ImportPath": "github.com/NSkelsey/OmbudsRetweeter/server",
+	"GoVersion": "go1.4",
+	"Deps": [
+		{
+			"ImportPath": "github.com/btcsuite/btcd/btcjson",
+			"Comment": "BTCD_0_10_0_BETA",
+			"Rev": "cfefe14153eeb37b4719cecf91c764ca66eaffee"
+		},
+		{
+			"ImportPath": "github.com/btcsuite/btcd/wire",
+			"Comment": "BTCD_0_10_0_BETA",
+			"Rev": "cfefe14153eeb37b4719cecf91c764ca66eaffee"
+		},
+		{
+			"ImportPath": "github.com/btcsuite/fastsha256",
+			"Rev": "302ad4db268b46f9ebda3078f6f7397f96047735"
+		},
+		{
+			"ImportPath": "github.com/btcsuite/go-flags",
+			"Rev": "6c288d648c1cc1befcb90cb5511dcacf64ae8e61"
+		},
+		{
+			"ImportPath": "github.com/mrjones/oauth",
+			"Rev": "a234b7b4476b5b5089f31e197f3786cdab0d0adf"
+		},
+		{
+			"ImportPath": "github.com/soapboxsys/ombudslib/ombutil",
+			"Rev": "d28ad9dce89f33a6fd8621ad469ad123768c257b"
+		},
+		{
+			"ImportPath": "github.com/soapboxsys/ombudslib/rpcexten",
+			"Rev": "d28ad9dce89f33a6fd8621ad469ad123768c257b"
+		}
+	]
+}
