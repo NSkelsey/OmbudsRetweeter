@@ -231,7 +231,7 @@ func (s *server) retweet(txid, rtext string, tweet *Tweet) error {
 
 	s.cacheSentTweet(tweet)
 
-	status := fmt.Sprintf("Yep. On the web: http://bit.ly/1Mwjq8u https://twitter.com/%s/status/%d",
+	status := fmt.Sprintf("It's stored on the web @ http://relay.getombuds.org and in the public record. http://bit.ly/1Mwjq8u https://twitter.com/%s/status/%d",
 		tweet.User.ScreenName, tweet.Id)
 	_, err := s.consumer.Post(
 		"https://api.twitter.com/1.1/statuses/update.json",
@@ -247,6 +247,9 @@ func (s *server) retweet(txid, rtext string, tweet *Tweet) error {
 	return nil
 }
 
+// handleTweet takes the raw json of a tweet and produces the output in the
+// blockchain and on twitter. Cases of failing bulletins, failing tweets and
+// unexpected scenarios are handled.
 func (s *server) handleTweet(str string) error {
 	fmt.Printf("Here's the raw tweet: %s\n", str)
 	tweet := &Tweet{}
@@ -317,7 +320,7 @@ func (s *server) makeBltn(tweet *Tweet) (interface{}, string) {
 	richText := formatStatusText(tweet)
 
 	msg := fmt.Sprintf("%s \n\n\n<code>\n%s\n</code>", rtText, richText)
-	board := fmt.Sprintf("DC23 %s ", s.cfg.Hashtag)
+	board := fmt.Sprintf("Testnet %s Log", s.cfg.Hashtag)
 
 	bltn, _ := btcjson.NewCmd("sendbulletin", s.cfg.SendAddress, board, msg)
 
