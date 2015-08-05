@@ -170,8 +170,9 @@ func (s *server) cacheSentTweet(t *Tweet) {
 		// Trim off the tweets that are older than the window.
 		cur := s.tweetCache.Back()
 		for cur.Next() != nil {
-			next = cur.Next()
-			if cur.Value.ts.Add(windowDur).Before(time.Now()) {
+			next := cur.Next()
+			curTweet := (cur.Value).(*cacheRecord)
+			if curTweet.ts.Add(windowDur).Before(time.Now()) {
 				// Current element is too old. Expire it.
 				s.tweetCache.Remove(cur)
 			}
@@ -183,19 +184,20 @@ func (s *server) cacheSentTweet(t *Tweet) {
 		tweet: t,
 	}
 
-	s.tweetCache.PushFront(&Element{Value: r})
+	s.tweetCache.PushFront(&list.Element{Value: r})
 }
 
 // canSend ensures that no rate limits have been exceeded.
 func (s *server) canSend() bool {
 	if s.tweetCache.Len() < 24 {
+		// Cache is not full.
 		return true
 	}
 
 	// This is the last element in the list.
-	lastCacheR := s.tweetCache.Back().Value
+	lastCacheR := s.tweetCache.Back().Value.(*cacheRecord)
 
-	window := lastCacheR.add(windowDur)
+	window := lastCacheR.ts.Add(windowDur)
 	if time.Now().Before(window) {
 		// We have exceed the window's rate of messages. Do not tweet.
 		return false
@@ -238,7 +240,6 @@ func (s *server) retweet(txid, rtext string, tweet *Tweet) error {
 		},
 		s.token,
 	)
-	log.Printf("%v\n", _)
 
 	if err != nil {
 		return err
@@ -261,6 +262,7 @@ func (s *server) handleTweet(str string) error {
 		_, err = s.rpcsend(unlockCmd)
 		if err != nil {
 			log.Printf("Error unlocking the wallet: %s\n", err)
+			s.storeFailed(tweet)
 			return nil
 		}
 
@@ -276,6 +278,7 @@ func (s *server) handleTweet(str string) error {
 		_, err = s.rpcsend(lockCmd)
 		if err != nil {
 			log.Printf("Error locking the wallet: %s\n", err)
+			s.storeFailed(tweet)
 			return nil
 		}
 
@@ -327,7 +330,7 @@ func (s *server) makeUnlockCmd() interface{} {
 }
 
 func main() {
-	rand.Seed(time.Unix())
+	rand.Seed(time.Now().Unix())
 	cfg, _, err := loadConfig()
 	if err != nil {
 		log.Fatal(err)
