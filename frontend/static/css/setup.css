@@ -1,0 +1,61 @@
+div.setup {
+    position: relative;
+}
+
+/***** Disables the functions on the left.... */
+div.setup #hider {
+    position: absolute;
+    left: -150px;
+    top: 0;
+    width: 150px;
+    height: 625px;
+    background: #000;
+    opacity: 0.75;
+}
+
+div.setup #firstWelc i {
+   color: gray; 
+}
+
+div.setup label {
+    display: block;
+}
+    
+div.setup table {
+    border-bottom: 1px solid #ddd;
+}
+
+div.setup .btn {
+    display: block;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+div.setup .create-wallet-wrap {
+    width: 100%;
+    height: 70px;
+}
+
+div.setup .btn.create-wallet {
+    display: inline-block;
+    float: left;
+}
+
+div.setup h1.wait {
+    text-align: center;
+}
+
+div.setup div.status {
+    margin-top: 15px;
+    width: 50%;
+    border-radius: 4px;
+    padding: 5px;
+    text-align: center;
+}
+
+div.setup div.spinner-wrap {
+    float: left;
+    display: inline-block;
+    margin-left: 15px;
+    margin-top: 15px;
+}

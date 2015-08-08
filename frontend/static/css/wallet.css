@@ -1,0 +1,114 @@
+/***************** Wallet Widget Styles ******************/
+
+.bal {
+    font-size: 1.4em;
+}
+
+.bal small {
+    color: #95a5a6;
+}
+
+.wallet-widget .bal.pend {
+    margin-bottom: 20px;
+}
+
+.wallet-widget .addressWrap {
+    background-color: #EEEEEE;
+    position: relative;
+    padding: 10px 5px;
+    width: 190px;
+    margin: 0;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.wallet-widget .addressBox {
+    width: 148px;
+    margin: 0 0 0 28px;
+}
+
+.wallet-widget .address {
+    font-family: monospace;
+    word-break: break-all;
+    text-decoration: None;
+}
+
+.wallet-widget .addressWrap svg {
+    position: absolute;
+    top: 23px;
+    left: 10px;
+}
+
+.wallet-widget .qrcode {
+    margin: 15px auto;
+    display: block
+}
+
+.biggerWrap {
+    border: 2px solid #EEEEEE;
+    border-radius: 13px;
+    display: inline-block;
+    margin-top: 15px;
+}
+
+
+/***************** Wallet Pane Styles ******************/
+
+select#selType {
+    float: right;
+    margin-right: 15px;
+    margin-top: 5px;
+}
+
+
+/***************** List Transactions Styles ******************/
+
+div.wallet-tx-list {
+    max-height: 530px;
+    overflow: auto;
+}
+
+.wallet-tx-list table {
+    border-spacing: 0;
+    width: 100%;
+}
+
+.wallet-tx-list table>tbody>tr>td.amnt {
+    padding: 5px;
+}
+
+.wallet-tx-list table>tbody>tr>td div {
+    display: inline-block;
+    border-radius: 3px;
+    padding: 4px;
+}
+
+.wallet-tx-list table>tbody>tr>td div.pos {
+    background-color: #dff0d8;
+}
+
+.wallet-tx-list table>tbody>tr>td div.neg {
+    background-color: rgb(255, 150, 150);;
+}
+div.wallet-tx-list table>tbody>tr:nth-of-type(odd) {
+      background-color: #f9f9f9;
+}
+
+table.table-header {
+    width: 100%;
+}
+
+.table-header th {
+    width: 20%;
+    text-align: center;
+}
+
+div.wallet-tx-list td {
+    width: 20%;
+    text-align: center;
+    padding: 0;
+}
+
+.wallet-tx-list .monospace {
+    font-family: monospace;
+}

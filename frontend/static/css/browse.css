@@ -1,0 +1,378 @@
+/************************ Class Macros ***********************/
+
+.title.author {
+    font-family: monospace;
+    font-size: 1.15em;
+    font-weight: bold;
+}
+
+/*********************** Page Structure *************************/
+
+#browseWrap {
+    width: 330px;
+    height: 100%;
+    float: left;
+}
+
+#contentPane {
+    width: 537px;
+    height: 535px;
+    padding: 20px 13px 15px 27px;
+    float: left;
+    overflow-y: scroll;
+}
+
+#browsePane > h4 {
+    border-bottom: 1px solid black;
+    margin: 0px;
+    height: 10%;
+}
+
+#listView {
+    overflow-y: scroll;
+    width: 100%;
+    height: 568px;
+}
+
+.nil {
+    font-style: italic;
+    color: #95a5a6;
+}
+
+#browsePane div.banner.head {
+    margin-bottom: 0px;
+}
+
+
+/*********************** Control Widget Styles ************************/
+
+div.control-widget.banner {
+    margin-bottom: 0px;
+}
+
+.control-widget .line {
+    margin: 0 15px;
+}
+
+.control-widget div.top > div {
+    display: inline-block;
+}
+
+.control-widget .label {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: 9px;
+}
+
+.control-widget .label a {
+    text-decoration: none;
+    color: black;
+}
+.control-widget .label a:hover {
+    text-decoration: underline;
+}
+
+.control-widget .selector {
+    float: right;
+    margin-top: 21px;
+    text-align: center;
+}
+
+.control-widget .bottom .meta-info {
+    font-size: .8em;
+}
+
+/*********************** Board List Elem Styles ***********************/
+
+.list-elem.full-wrap
+{
+    position: relative;
+}
+
+
+.list-elem .side-bar {
+    display: None;
+}
+
+.list-elem .side-bar.active {
+    background-color: #2A8DEA;
+    width: 10px;
+    height: 65px;
+    position: absolute;
+    display: inline;
+    top: -1px;
+    right: 0;
+}
+
+.list-elem .content {
+    margin: 0 10px 0 30px;
+    padding: 10px 0px 10px 0;
+    border-bottom: 1px solid #AAAAAA;
+}
+
+.list-elem .favorite {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    left: 5px;
+    display: inline-block;
+}
+
+.list-elem .content .title {
+    display: inline-block;
+    width: 255px;
+}
+
+.list-elem .content .date {
+    float: right;
+    margin-top: 4px;
+    margin-right: 4px;
+}
+
+.list-elem .content .numline {
+    margin: 8px 0 0 0;
+}
+
+/********************* Bltn Banner Styles **********************/
+
+div.bltnPane {
+    width: 576px;
+}
+
+div.bltnPane .banner {
+    margin-bottom: 0;
+}
+
+
+.bltnPane .head {
+}
+
+.bltnPane .head img,
+.bltnPane input.renderBox {
+    float: right;
+}
+
+.bltnPane .head img.favorite {
+    margin-top: 18px;
+    margin-right: 5px;
+}
+
+.bltnPane .head input.renderBox {
+    margin-top: 15px;
+}
+
+.bltnPane .head div.topline,
+.bltnPane .head div.bottomline {
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+
+.bltnPane .head div.title {
+    display: inline-block;
+    margin-top: 12px;
+}
+
+.bltnPane .head div.topline div.author-icon {
+
+}
+
+
+/********************** Bulletin List View Styles ***************************/
+
+
+
+div.card {
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
+    background-color: white;
+    padding: 15px 15px 20px 15px; 
+}
+
+/******** Top Board Card **********/
+
+div.boardDisplay div.boardline {
+    margin-bottom: 30px
+}
+
+div.boardline .name {
+    font-size: 1.3em;
+    display: inline-block;
+    margin-bottom: 7px;
+
+}
+
+.favorite {
+    height: 20px;
+    width: 20px;
+    margin-top: 2px;
+    float: right;
+    content:url("/static/images/star-inactive.png");
+}
+
+.favorite.active {
+    content:url("/static/images/star-active.png");
+}
+
+div.boardline .setting {
+    float: right;
+    margin-right: 2px;
+    height: 25px;
+}
+
+div.boardline .meta .mine {
+    float: right;
+}
+
+/*************** Bulletin Card Styles **********************/
+
+div.pinnedBulletin {
+    border-bottom: 1px solid #AAAAAA;
+}
+
+div.pinnedBulletin.linked {
+    background-color: cyan;
+}
+
+.pinnedBulletin.detail {
+    background-color: rgba(255, 244, 220, 0.6);
+}
+
+.pinnedBulletin .markdown {
+   word-wrap: break-word;
+}
+
+.pinnedBulletin .topline {
+    width: 100%;
+    padding-bottom: 3px;
+    height: 25px;
+    position: relative;
+}
+
+.pinnedBulletin .topline div {
+    display: inline-block;
+}
+
+.pinnedBulletin .authorbox,
+.pinnedBulletin .boardBox {
+    width: 33%;
+    position: relative;
+}
+
+
+.authorbox .author-icon {
+    top: 2px;
+    position: absolute;
+}
+
+.authorbox .text {
+    margin-left: 23px;
+}
+
+.topline a {
+    font-family: "Monaco", Monaco, monospace, sans-serif;
+    text-decoration: underline;
+    color: black;
+}
+
+.topline .author a {
+    text-decoration: none;
+}
+
+.topline a:hover {
+    text-decoration: underline;
+}
+
+
+.pinnedBulletin .timestamp {
+    width: 33%;
+    text-align: center;
+}
+
+.pinnedBulletin .interact {
+    width: 32%;
+}
+
+.pinnedBulletin .setting {
+    height: 25px;
+    position:absolute; 
+    bottom: 6px;
+    right: 60px;
+}
+
+.pinnedBulletin input.render {
+    position: absolute;
+    top: 2px;
+    right: 30px;
+}
+
+.pinnedBulletin .slider {
+    height: 25px;
+    position:absolute; 
+    bottom: 5px;
+    right: 30px;
+}
+.pinnedBulletin .confs {
+    height: 22px;
+    position:absolute; 
+    bottom: 6px;
+    right: 3px;
+}
+
+.pinnedBulletin .msg {
+    word-wrap: break-word;
+    margin-top: 14px;
+    margin-bottom: 14px;
+}
+
+.pinnedBulletin .markdown img {
+    max-width: 436px;
+    max-height: 436px;
+}
+.pinnedBulletin .markdown img {
+   margin: 0 auto; 
+   display: block;
+}
+
+.pinnedBulletin td {
+    border-bottom: 1px solid #AAAAAA;
+    padding: 4px;
+}
+
+
+.pinnedBulletin table {
+    border-spacing: 0px;
+}
+
+.pinnedBulletin table {
+    border-top: 1px solid #AAAAAA;
+}
+
+.pinnedBulletin table tr {
+    border-bottom: 1px solid #AAAAAA;
+}
+
+.pinnedBulletin table tr td:first-child {
+    border-right: 1px solid #AAAAAA;
+    font-weight: bold;
+}
+
+.pinnedBulletin table tr td:last-child {
+    font-family: monospace;
+}
+
+.pinnedBulletin td.tiny {
+    font-size: 0.55em;
+}
+
+
+/*************** Author List view Styles *************/
+
+.browseAuthor .active {
+    font-weight: bold;
+}
+
+
+.browseAuthor .side-bar.active {
+    height: 63px;
+}
+

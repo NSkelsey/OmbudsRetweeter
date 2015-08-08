@@ -131,6 +131,21 @@ func (s *server) Start() {
 	s.listenTwitterStream()
 }
 
+func (s *server) tryToReconnect() (*bufio.Reader, error) {
+ 	response, err := s.consumer.Get(
+		"https://stream.twitter.com/1.1/statuses/filter.json",
+		map[string]string{"track": s.cfg.Hashtag},
+		s.token)
+
+	if err != nil {
+        return nil, err
+	}
+
+	reader := bufio.NewReader(response.Body)
+	log.Printf("Reconnected to %s stream\n", s.cfg.Hashtag)
+    return reader, nil
+}
+
 func (s *server) listenTwitterStream() {
 	response, err := s.consumer.Get(
 		"https://stream.twitter.com/1.1/statuses/filter.json",
@@ -148,7 +163,12 @@ func (s *server) listenTwitterStream() {
 	for {
 		str, err := reader.ReadString('\n')
 		if err != nil {
-			log.Fatal(err)
+            log.Printf("Reading from twitter threw %s\n", err)
+			reader, err = s.tryToReconnect()
+            if err != nil {
+                log.Fatal(err)
+            }
+            continue
 		}
 		if s.detectTweet(str) {
 			err := s.handleTweet(str)
@@ -231,7 +251,7 @@ func (s *server) retweet(txid, rtext string, tweet *Tweet) error {
 
 	s.cacheSentTweet(tweet)
 
-	status := fmt.Sprintf("%s it's stored on the web @ http://relay.getombuds.org and in the public record. https://twitter.com/%s/status/%d",
+	status := fmt.Sprintf("@%s it's stored on the web @ http://relay.getombuds.org and in the public record. https://twitter.com/%s/status/%d",
 		tweet.User.ScreenName, tweet.User.ScreenName, tweet.Id)
 	_, err := s.consumer.Post(
 		"https://api.twitter.com/1.1/statuses/update.json",
@@ -313,9 +333,12 @@ func formatStatusText(tweet *Tweet) string {
 }
 
 func (s *server) makeBltn(tweet *Tweet) (interface{}, string) {
+    sn := tweet.User.ScreenName
 
-	rtText := fmt.Sprintf("First seen on [Twitter](https://twitter.com/%s/status/%d)",
-		tweet.User.ScreenName, tweet.Id)
+    userLink := fmt.Sprintf("[@%s](https://twitter.com/%s)", sn, sn)
+    postLink := fmt.Sprintf("[Twitter](https://twitter.com/%s/status/%d)", sn, tweet.Id)
+	rtText := fmt.Sprintf("First seen posted by %s on %s",
+		userLink, postLink)
 
 	richText := formatStatusText(tweet)
 

@@ -1,6 +1,26 @@
+<!doctype html>
 <html>
+    <head>
+        <title>Web Relay</title>
+        <link rel="stylesheet" href="/css/main.css"/>
+        <link rel="stylesheet" href="/css/browse.css"/>
+    </head>
 
-<body>
-    I love my team
-</body>
+    <body ng-app="OmbudsRetweetRelay">
+
+        <div id="top" ng-controller="topCtrl">
+            <h2>#RecordThisPlease Testnet Bulletins</h2>
+            <p><a href="https://www.defcon.org/html/defcon-23/dc-23-demo-labs-schedule.html#Skelsey">WTF is this?</a></p>
+            <div ng-repeat="bltn in author.bltns | orderBy:'-timestamp' track by bltn.txid" class="pinBulletin"></div>
+        </div>
+
+        <script src="/angular/angular.js"></script>
+        <script src="/lib/angular-sanitize.js"></script>
+        <script src="/lib/showdown.js"></script>
+        <script src="/lib/markdown.js"></script>
+        <script src="/lib/md5.js"></script>
+        <script src="/lib/websocket.js"></script>
+        <script src="/filter.js"></script>
+        <script src="/app.js"></script>
+    </body>
 </html>

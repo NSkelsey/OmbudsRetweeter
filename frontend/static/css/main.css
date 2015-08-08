@@ -1,0 +1,91 @@
+/* fonts from: https://github.com/google/fonts/tree/master/apache/opensans */
+@font-face{
+    font-family: opensans;
+    src: url(fonts/OpenSans-Regular.ttf);
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    font-family: opensans, sans-serif;
+    font-size: 14px;
+}
+
+#top {
+    width: 530px;
+    margin: 10px auto;
+}
+
+#paneSelect {
+    height: 100%;
+    width: 150px;
+    float: left;
+}
+
+#paneSelect .banner {
+}
+
+#paneWrap {
+    width: 906px;
+    height: 100%;
+    float: left;
+}
+
+
+#welc {
+    height: 800px;
+}
+
+.meta-info,
+.extra {
+    color: #828282;
+}
+
+/*********************** Pane Styles ***********************/
+
+
+.pane.ng-animate {
+    transition:300ms linear all;
+}
+
+.pane.ng-leave.ng-leave-active,
+.pane.ng-leave {
+    display: None;
+}
+
+.pane.ng-enter {
+    opacity:0;
+}
+
+.pane.ng-enter.ng-enter-active {
+    opacity:1;
+}
+
+/******************* Background Colors *****************/
+.red {
+    background: #f2dede;
+}
+
+.green {
+    background: #dff0d8;
+}
+
+.blue {
+    background: #d9edf7;
+}
+
+/***************** Tables ******************/
+ 
+table>thead>tr>th {
+    vertical-align: bottom;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+}
+
+table>tbody>tr>td {
+    padding: 8px;
+    text-align: left;
+    border-top: 1px solid #ddd;
+}
+
