@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+    "math"
 	"time"
 
 	"github.com/btcsuite/btcd/btcjson/v2/btcjson"
@@ -131,19 +132,30 @@ func (s *server) Start() {
 	s.listenTwitterStream()
 }
 
+// tryToReconnect uses an exponential backoff to try and reconnect to Twitter's
+// status stream. It will try for around 3 days to connect before giving up 
+// completely.
 func (s *server) tryToReconnect() (*bufio.Reader, error) {
- 	response, err := s.consumer.Get(
-		"https://stream.twitter.com/1.1/statuses/filter.json",
-		map[string]string{"track": s.cfg.Hashtag},
-		s.token)
+    for i := 0; i < 30; i++ {
+        response, err := s.consumer.Get(
+            "https://stream.twitter.com/1.1/statuses/filter.json",
+            map[string]string{"track": s.cfg.Hashtag},
+            s.token)
 
-	if err != nil {
-        return nil, err
-	}
+        if err != nil {
+            // Backoffs at 1 + 1*(1+.10)^i 
+            t := int(1000 + 1000*math.Pow(1+0.10, float64(i)))
+            backoff := time.Duration(t)*time.Millisecond
+            log.Printf("Saw: %s. Backing off for: %s\n", err, backoff.String())
+            time.Sleep(backoff)
+            continue
+        }
 
-	reader := bufio.NewReader(response.Body)
-	log.Printf("Reconnected to %s stream\n", s.cfg.Hashtag)
-    return reader, nil
+        reader := bufio.NewReader(response.Body)
+        log.Printf("Reconnected to %s stream\n", s.cfg.Hashtag)
+        return reader, nil
+    }
+    return nil, fmt.Errorf("Could not reconnect after retrying...")
 }
 
 func (s *server) listenTwitterStream() {
