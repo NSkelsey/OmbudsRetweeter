@@ -4,19 +4,19 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"path"
 	"strconv"
-    "path"
 
-	"github.com/NSkelsey/ahimsarest"
-	"github.com/soapboxsys/ombudslib/pubrecdb"
+	"github.com/soapboxsys/ombudslib/jsonapi"
 	"github.com/soapboxsys/ombudslib/ombutil"
+	"github.com/soapboxsys/ombudslib/pubrecdb"
 )
 
 func main() {
-    defaultAppPath := ombutil.AppDataDir("Ombudscore", false)
+	defaultAppPath := ombutil.AppDataDir("ombnode", false)
 	var DBPath *string = flag.String(
-		"dbpath",
-		path.Join(defaultAppPath, "node", "pubrecord.db"),
+		"pubrecpath",
+		path.Join(defaultAppPath, "data", "testnet", "pubrecord.db"),
 		"Path to the public record database",
 	)
 
@@ -34,13 +34,14 @@ func main() {
 	}
 
 	apiPrefix := "/api/"
-	api := ahimsarest.Handler(apiPrefix, db)
+	api := jsonapi.Handler(apiPrefix, db)
 
 	mux := http.NewServeMux()
 	mux.Handle(apiPrefix, api)
-    mux.Handle("/", http.FileServer(http.Dir("./static")))
+	mux.Handle("/", http.FileServer(http.Dir("./static")))
 
-	host := "localhost:" + strconv.Itoa(*port)
+	host := "0.0.0.0:" + strconv.Itoa(*port)
+	log.Printf("Server listening on: %s\n", host)
 
 	log.Println(http.ListenAndServe(host, mux))
 }

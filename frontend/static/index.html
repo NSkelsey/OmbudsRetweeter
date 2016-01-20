@@ -9,8 +9,12 @@
     <body ng-app="OmbudsRetweetRelay">
 
         <div id="top" ng-controller="topCtrl">
-            <h2>#RecordThisPlease Testnet Bulletins</h2>
-            <p><a href="https://www.defcon.org/html/defcon-23/dc-23-demo-labs-schedule.html#Skelsey">WTF is this?</a></p>
+            <h2>Ombuds #RecordThisPlease Web Relay</h2>
+            <p>
+            <a href="">
+                What is this?
+            </a>
+            </p>
             <div ng-repeat="bltn in author.bltns | orderBy:'-timestamp' track by bltn.txid" class="pinBulletin"></div>
         </div>
 

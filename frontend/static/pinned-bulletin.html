@@ -5,16 +5,11 @@
                         <div class="text">
                 From 
                 <div class="author">
-                    <a href="https://www.blocktrail.com/tBTC/address/{{ bltn.author }}">{{ bltn.author | limitTo:10 }}</a>
+                    <a href="{{ rootAddr }}/address/{{ bltn.author }}">{{ bltn.author | limitTo:10 }}</a>
                 </div>
             </div>
         </div> 
-        <div ng-if="inAuthor" class="boardBox">
-            In <a ng-if="bltn.boardUrl != ''" href="/#/b/board/{{ bltn.board }}">{{ bltn.board | limitTo:13 }}{{ bltn.board.length > 13 ? '...' : '' }}</a>
-            <a class="nil" ng-if="bltn.boardUrl == ''" href="/#/b/nilboard">The Nil Board</a>
-        </div>
-
-        <div class="timestamp">{{ bltn.timestamp | nicedatetime  }}</div>
+    <div class="timestamp">{{ bltn.timestamp | nicedatetime  }}</div>
         <div class="interact">
             <input class="render" type="checkbox" ng-model="bltn.renderMd" ng-click="renderMd(bltn)" />
             <img class="confs" ng-src="{{ depthSrc }}" ng-click="moreDetail(bltn)" />
@@ -30,14 +25,15 @@
 
     <div class="detail" ng-show="bltn.detail">
         <table class="">
-            <tr><td>Author:</td><td><a href="https://www.blocktrail.com/address/tBTC/">{{ bltn.author }}</a></td></tr>
+            <tr><td>Author:</td><td><a href="{{ rootAddr }}/address/{{
+                        bltn.author }}">{{ bltn.author }}</a></td></tr>
             <tr><td>Tx Timestamp:</td><td>{{ bltn.timestamp | nicedatetime }}</td></tr>
-            <tr><td>Block Timestamp:</td><td>{{ bltn.blkTimestamp | nicedatetime }}</td></tr>
+            <tr><td>Block Timestamp:</td><td>{{ bltn.blkref.ts | nicedatetime }}</td></tr>
             <tr><td>Tx Hash:</td><td class="tiny">
-                    <a ng-click="bltn.linked = true" href="https://www.blocktrail.com/tBTC/tx/{{ bltn.txid }}">{{ bltn.txid }}</a>
+                    <a ng-click="bltn.linked = true" href="{{ rootAddr }}/tx/{{ bltn.txid }}">{{ bltn.txid }}</a>
             </td></tr>
             <tr><td>Block Hash:</td><td class="tiny">
-                    <a href="https://www.blocktrail.com/tBTC/block/{{ bltn.blk }}">{{ bltn.blk }}</a>
+                    <a href="{{ rootAddr }}/block/{{ bltn.blkref.hash }}">{{ bltn.blkref.hash }}</a>
             </td></tr>
         </table>
     </div>

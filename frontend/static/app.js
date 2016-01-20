@@ -5,20 +5,20 @@ angular.module("OmbudsRetweetRelay", ['markdownModule', 'ombWebAppFilters'])
     $scope.author = {
         bltns: [],
     }
-    backendService.then(function(author) {
-        $scope.author = author
+    backendService.then(function(new_resp) {
+        $scope.author.bltns = new_resp.bulletins;
     });
 })
 .factory('backendService', function($http, $q) {
 
-    var authorPromise = $http.get('/api/author/mvnrngzsNFdbHrRYqdZNC8Y6aoS9tZRMRu').then(function(result) {
+    var authorPromise = $http.get('/api/new').then(function(result) {
         return result.data
     });
     return authorPromise;
 })
 .factory('heightService', function($http) {
     var heightP = $http.get('/api/status').then(function(result) {
-        return result.data.blkCount;
+        return result.data.blkTip.height;
     });
     return heightP;
 })
@@ -39,6 +39,8 @@ angular.module("OmbudsRetweetRelay", ['markdownModule', 'ombWebAppFilters'])
         bltn.detail = !bltn.detail;
     }
 
+    $scope.rootAddr = "https://www.blocktrail.com/tBTC";
+
     heightService.then(function(height) {
         $scope.depthSrc = depthImg(height);
     });
@@ -49,12 +51,12 @@ angular.module("OmbudsRetweetRelay", ['markdownModule', 'ombWebAppFilters'])
             return base + '0conf.png';
         }
 
-        if (!angular.isDefined(bltn.blk)) {
+        if (!angular.isDefined(bltn.blkref)) {
             // The bltn is not mined
             return base + "0conf.png"       
         } else {
             // The bltn is in some block
-            var diff = curHeight - bltn.blkHeight;
+            var diff = curHeight - bltn.blkref.h;
 
             // TODO deal with blk of unknown height
             if (diff < 0) {
