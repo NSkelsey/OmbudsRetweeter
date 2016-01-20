@@ -28,11 +28,13 @@ var activeNet chaincfg.Params
 // A json representation of Twitter's 'statuses' as they are pushed out as JSON via
 // their endpoints
 type Tweet struct {
-	Text      string     `json:"text"`      // The content of the tweet
-	Id        int        `json:"id"`        // Unique Id for the given tweet.
-	User      UserFields `json:"user"`      // The user object for this tweet.
-	Ents      Entities   `json:"entities"`  // Contains objects within the tweet
-	Retweeted bool       `json:"retweeted"` // Flag to indicate if status is a retweet.
+	Text        string     `json:"text"`                                // The content of the tweet
+	Id          int        `json:"id"`                                  // Unique Id for the given tweet.
+	User        UserFields `json:"user"`                                // The user object for this tweet.
+	Ents        Entities   `json:"entities"`                            // Contains objects within the tweet
+	Retweeted   bool       `json:"retweeted"`                           // Flag to indicate if status is a retweet.
+	ParentId    int        `json:"in_reply_to_status_id",omitempty`     // A field that indicates if the tweet is a reply
+	ParentIdStr string     `json:"in_reply_to_status_id_str",omitempty` // A field that indicates if the tweet is a reply
 }
 
 type UserFields struct {
@@ -46,31 +48,6 @@ type Entities struct {
 type HashTag struct {
 	Text    string `json:"text"`    // The text minus the # of the hashtag
 	Indices []int  `json:"indices"` // Opening and closing position of the hashtag.
-}
-
-var retweetText []string = []string{
-	"Wow %s, thanks!",
-	"%s said it like he meant it.",
-	"Yep... %s...",
-	"Very true %s, very true",
-	"As I robot I can relate",
-	"This has nothing to do with anything",
-	"Great post!",
-	"Great tweet!",
-	"Good tweet!",
-	"Wonderful",
-	"You are so handy!",
-	"Great!",
-	"Word.",
-	"The Truth",
-	"%s is the cat's pajamas",
-	"%s is the cat's meow",
-	"%s is the bee's knees",
-	"This tweet is right bully",
-	"Rootin' tootin' %s is right!",
-	"Say $s what gives?",
-	"Heavens to betsy! %s is right!",
-	"Constructive...!",
 }
 
 func (s *server) detectTweet(str string) bool {
@@ -182,7 +159,8 @@ func (s *server) Start() {
 func (s *server) tryToReconnect() (*bufio.Reader, error) {
 	for i := 0; i < 30; i++ {
 		response, err := s.consumer.Get(
-			"https://stream.twitter.com/1.1/statuses/filter.json",
+			//"https://stream.twitter.com/1.1/statuses/filter.json",
+			"https://userstream.twitter.com/1.1/user.json",
 			map[string]string{"track": s.cfg.Hashtag},
 			s.token)
 
@@ -227,7 +205,7 @@ func (s *server) listenTwitterStream() {
 			continue
 		}
 		if s.detectTweet(str) {
-			err := s.handleTweet(str)
+			err := s.handleIncomingTweet(str)
 			if err != nil {
 				log.Println(err.Error())
 			}
@@ -282,63 +260,11 @@ func (s *server) canSend() bool {
 	return true
 }
 
-var retweetFailed []string = []string{
-	"Ouch... something broke",
-	"Nope, that didn't work",
-	"I am broken!",
-	"That did not work.",
-	"Maybe try again? It seems broken to me.",
-	"Definitely not working...sorry!",
-	"Error! I need a human to fix this.",
-}
-
-// Informs the user that their tweet was not backed up.
-func (s *server) storeFailed(tweet *Tweet) error {
-	t := len(retweetFailed)
-	status := retweetFailed[rand.Intn(t)] + "https://twitter.com/%s/status/%d"
-	status = fmt.Sprintf(status, tweet.User.ScreenName, tweet.Id)
-	resp, err := s.consumer.Post(
-		"https://api.twitter.com/1.1/statuses/update.json",
-		map[string]string{
-			"status": status,
-		},
-		s.token,
-	)
-	log.Printf("Retweet FAILED\nTweet:%s\nResp:%v\n", tweet, resp)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// Formulates a retweet and posts it to Twitter. This mimics what is posted in
-// the block chain.
-func (s *server) retweet(txid, rtext string, tweet *Tweet) error {
-
-	s.cacheSentTweet(tweet)
-
-	status := fmt.Sprintf("@%s it's stored in public record and relayed to the web via http://relay.getombuds.org https://twitter.com/%s/status/%d",
-		tweet.User.ScreenName, tweet.User.ScreenName, tweet.Id)
-	_, err := s.consumer.Post(
-		"https://api.twitter.com/1.1/statuses/update.json",
-		map[string]string{
-			"status": status,
-		},
-		s.token,
-	)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// handleTweet takes the raw json of a tweet and produces the output in the
+// handleIncomingTweet takes the raw json of a tweet and produces the output in the
 // blockchain and on twitter. Cases of failing bulletins, failing tweets and
 // unexpected scenarios are handled.
-func (s *server) handleTweet(str string) error {
-	fmt.Printf("Here's the raw tweet: %s\n", str)
+func (s *server) handleIncomingTweet(str string) error {
+	//fmt.Printf("Here's the raw tweet: %s\n", str)
 	tweet := &Tweet{}
 	err := json.Unmarshal([]byte(str), tweet)
 	if err != nil {
@@ -347,19 +273,33 @@ func (s *server) handleTweet(str string) error {
 	fmt.Printf("Here's the parsed tweet: %s\n", tweet)
 
 	if s.canSend() {
+		// Figure out if the tweet is a reply and if so, record what the
+		// original poster said. Use the in_reply_to_status field to determine
+		// if the server will respond to the original tweet or its parent.
+		// All responses via tweet are too the person that tweeted at the bot
+		// though.
 
-		wireBltn, rtText := s.makeBltn(tweet)
+		// The tweet that we are going to backup
+		targetTweet := tweet
+		if tweet.ParentIdStr != "" {
+			targetTweet, err = s.getTweet(tweet.ParentIdStr)
+			if err != nil {
+				log.Printf("Could not get parent tweet: %s", err)
+				return nil
+			}
+		}
+		storedParent := targetTweet.Id != tweet.Id
+
+		wireBltn := s.makeBltn(targetTweet)
 		txid, err := ombpublish.PublishBulletin(s.rpcClient, wireBltn, *s.pubParams)
 		if err != nil {
 			log.Printf("Error sending the bltn: %s\n", err)
 			s.storeFailed(tweet)
 			return nil
 		}
+		log.Println("Stored bltn: %s", txid)
 
-		// s.makeUnlock
-		// NewWalletCmd
-
-		err = s.retweet(txid.String(), rtText, tweet)
+		err = s.respondWithStatus(tweet, storedParent)
 		if err != nil {
 			log.Printf("Retweet failed: %s\n", err)
 			return nil
@@ -371,37 +311,21 @@ func (s *server) handleTweet(str string) error {
 	return nil
 }
 
-func formatStatusText(tweet *Tweet) string {
-	orig := tweet.Text
-	s := ""
-
-	pos := 0
-	for _, HashTag := range tweet.Ents.HashTags {
-		lnk := fmt.Sprintf("[#%s](https://twitter.com/hashtag/%s?src=hash&f=tweets)",
-			HashTag.Text, HashTag.Text)
-		s += orig[pos:HashTag.Indices[0]] + lnk
-		pos = HashTag.Indices[1]
-	}
-	s += orig[pos:]
-	return s
-}
-
-func (s *server) makeBltn(tweet *Tweet) (*ombwire.Bulletin, string) {
+func (s *server) makeBltn(tweet *Tweet) *ombwire.Bulletin {
 	sn := tweet.User.ScreenName
 
-	userLink := fmt.Sprintf("[@%s](https://twitter.com/%s)", sn, sn)
-	postLink := fmt.Sprintf("[Twitter](https://twitter.com/%s/status/%d)", sn, tweet.Id)
-	rtText := fmt.Sprintf("First seen posted by %s at %s",
-		userLink, postLink)
+	// Schema for bltns generated by this tool is:
+	// #RTMirror of [@username](https://twtr.com/uname/status/345345345343433)
+	// TWEET BODY TWEET BODY
+	// TWEET BODY TWEET BODY
+	postLink := fmt.Sprintf("[@%s](https://twitter.com/%s/status/%d)", sn, tweet.Id)
 
-	richText := formatStatusText(tweet)
-
-	msg := fmt.Sprintf("%s \n\n\n<code>\n%s\n</code>", rtText, richText)
+	msg := fmt.Sprintf("#RTMirror of %s\n%s", postLink, tweet.Text)
 
 	now := uint64(time.Now().Unix())
 	bltn := ombwire.NewBulletin(msg, now, nil)
 
-	return bltn, rtText
+	return bltn
 }
 
 func (s *server) makeUnlockCmd() interface{} {

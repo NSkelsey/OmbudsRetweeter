@@ -33,6 +33,7 @@ var (
 	defaultRPCCertFile    = filepath.Join(ombudsNodeHome, "rpc.cert")
 	defaultWalletCertFile = filepath.Join(ombudsNodeHome, "rpc.cert")
 	defaultAccessToken    = filepath.Join(retweeterHomeDir, "token.json")
+	defaultRelayUrl       = "http://relay.getombuds.org"
 )
 
 // config defines the configuration options for retweeter.
@@ -53,6 +54,7 @@ type config struct {
 	AccessTokenFile  string `long:"accesstoken" short:"t" description:"The name of the file the access token is stored in."`
 	Hashtag          string `long:"hashtag" short:"h" description:"The hashtag to track."`
 	WalletPassphrase string `long:"walletpassphrase" description:"The wallet's passphrase for sending."`
+	RelayUrl         string `long:"relayurl" description:"The url to link to in tweets"`
 }
 
 func hasField(name, s string) {
@@ -127,6 +129,7 @@ func loadConfig() (*config, []string, error) {
 		RPCServer:       defaultRPCServer,
 		RPCCert:         defaultRPCCertFile,
 		AccessTokenFile: defaultAccessToken,
+		RelayUrl:        defaultRelayUrl,
 	}
 
 	// Create the home directory if it doesn't already exist.
