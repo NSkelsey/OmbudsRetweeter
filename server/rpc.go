@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/btcsuite/btcd/btcjson/v2/btcjson"
+	"github.com/btcsuite/btcd/btcjson"
 	_ "github.com/soapboxsys/ombudslib/rpcexten"
 )
 

@@ -7,16 +7,23 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"math/rand"
-    "math"
 	"time"
 
-	"github.com/btcsuite/btcd/btcjson/v2/btcjson"
+	"github.com/btcsuite/btcd/btcjson"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcrpcclient"
 	"github.com/mrjones/oauth"
+	"github.com/soapboxsys/ombudslib/ombpublish"
+	"github.com/soapboxsys/ombudslib/ombwire"
 )
 
 // Twitter's api rate limiting window
 var windowDur time.Duration = 15 * time.Minute
+
+// The active BitcoinNet the application is interfacing with
+var activeNet chaincfg.Params
 
 // A json representation of Twitter's 'statuses' as they are pushed out as JSON via
 // their endpoints
@@ -87,9 +94,11 @@ func (s *server) detectTweet(str string) bool {
 }
 
 type server struct {
-	cfg      *config
-	token    *oauth.AccessToken
-	consumer *oauth.Consumer
+	cfg       *config
+	rpcClient *btcrpcclient.Client
+	pubParams *ombpublish.Params
+	token     *oauth.AccessToken
+	consumer  *oauth.Consumer
 	// The number of tweets we tried to store
 	cnt        int
 	tweetCache *list.List // All tweets sent in the last 15 minutes.
@@ -109,6 +118,7 @@ func newServer(cfg *config) (*server, error) {
 		return nil, err
 	}
 
+	// Setup Twitter Oauth
 	c := oauth.NewConsumer(
 		cfg.ConsumerKey,
 		cfg.ConsumerSecret,
@@ -116,10 +126,16 @@ func newServer(cfg *config) (*server, error) {
 			RequestTokenUrl:   "https://api.twitter.com/oauth/request_token",
 			AuthorizeTokenUrl: "https://api.twitter.com/oauth/authorize",
 			AccessTokenUrl:    "https://api.twitter.com/oauth/access_token",
-		})
+		},
+	)
+
+	client := createRPCClient(cfg)
+	pubParams := ombpublish.NormalParams(&activeNet, cfg.WalletPassphrase)
 
 	s := &server{
 		cfg:        cfg,
+		rpcClient:  client,
+		pubParams:  &pubParams,
 		token:      tok,
 		consumer:   c,
 		tweetCache: list.New(),
@@ -128,34 +144,62 @@ func newServer(cfg *config) (*server, error) {
 	return s, nil
 }
 
+func createRPCClient(cfg *config) *btcrpcclient.Client {
+
+	certs, err := ioutil.ReadFile(cfg.RPCCert)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	connCfg := &btcrpcclient.ConnConfig{
+		Host:         cfg.RPCServer,
+		User:         cfg.RPCUser,
+		Pass:         cfg.RPCPassword,
+		HTTPPostMode: true,
+		Certificates: certs,
+	}
+
+	client, err := btcrpcclient.New(connCfg, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = client.GetBlockCount()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return client
+}
+
 func (s *server) Start() {
 	s.listenTwitterStream()
 }
 
 // tryToReconnect uses an exponential backoff to try and reconnect to Twitter's
-// status stream. It will try for around 3 days to connect before giving up 
+// status stream. It will try for around 3 days to connect before giving up
 // completely.
 func (s *server) tryToReconnect() (*bufio.Reader, error) {
-    for i := 0; i < 30; i++ {
-        response, err := s.consumer.Get(
-            "https://stream.twitter.com/1.1/statuses/filter.json",
-            map[string]string{"track": s.cfg.Hashtag},
-            s.token)
+	for i := 0; i < 30; i++ {
+		response, err := s.consumer.Get(
+			"https://stream.twitter.com/1.1/statuses/filter.json",
+			map[string]string{"track": s.cfg.Hashtag},
+			s.token)
 
-        if err != nil {
-            // Backoffs at 1 + 1*(1+.10)^i 
-            t := int(1000 + 1000*math.Pow(1+0.10, float64(i)))
-            backoff := time.Duration(t)*time.Millisecond
-            log.Printf("Saw: %s. Backing off for: %s\n", err, backoff.String())
-            time.Sleep(backoff)
-            continue
-        }
+		if err != nil {
+			// Backoffs at 1 + 1*(1+.10)^i
+			t := int(1000 + 1000*math.Pow(1+0.10, float64(i)))
+			backoff := time.Duration(t) * time.Millisecond
+			log.Printf("Saw: %s. Backing off for: %s\n", err, backoff.String())
+			time.Sleep(backoff)
+			continue
+		}
 
-        reader := bufio.NewReader(response.Body)
-        log.Printf("Reconnected to %s stream\n", s.cfg.Hashtag)
-        return reader, nil
-    }
-    return nil, fmt.Errorf("Could not reconnect after retrying...")
+		reader := bufio.NewReader(response.Body)
+		log.Printf("Reconnected to %s stream\n", s.cfg.Hashtag)
+		return reader, nil
+	}
+	return nil, fmt.Errorf("Could not reconnect after retrying...")
 }
 
 func (s *server) listenTwitterStream() {
@@ -175,12 +219,12 @@ func (s *server) listenTwitterStream() {
 	for {
 		str, err := reader.ReadString('\n')
 		if err != nil {
-            log.Printf("Reading from twitter threw %s\n", err)
+			log.Printf("Reading from twitter threw %s\n", err)
 			reader, err = s.tryToReconnect()
-            if err != nil {
-                log.Fatal(err)
-            }
-            continue
+			if err != nil {
+				log.Fatal(err)
+			}
+			continue
 		}
 		if s.detectTweet(str) {
 			err := s.handleTweet(str)
@@ -238,9 +282,20 @@ func (s *server) canSend() bool {
 	return true
 }
 
+var retweetFailed []string = []string{
+	"Ouch... something broke",
+	"Nope, that didn't work",
+	"I am broken!",
+	"That did not work.",
+	"Maybe try again? It seems broken to me.",
+	"Definitely not working...sorry!",
+	"Error! I need a human to fix this.",
+}
+
 // Informs the user that their tweet was not backed up.
 func (s *server) storeFailed(tweet *Tweet) error {
-	status := "Woops. Looks like I can't back that up... https://twitter.com/%s/status/%d"
+	t := len(retweetFailed)
+	status := retweetFailed[rand.Intn(t)] + "https://twitter.com/%s/status/%d"
 	status = fmt.Sprintf(status, tweet.User.ScreenName, tweet.Id)
 	resp, err := s.consumer.Post(
 		"https://api.twitter.com/1.1/statuses/update.json",
@@ -249,7 +304,7 @@ func (s *server) storeFailed(tweet *Tweet) error {
 		},
 		s.token,
 	)
-	log.Printf("%v\n", resp)
+	log.Printf("Retweet FAILED\nTweet:%s\nResp:%v\n", tweet, resp)
 
 	if err != nil {
 		return err
@@ -263,7 +318,7 @@ func (s *server) retweet(txid, rtext string, tweet *Tweet) error {
 
 	s.cacheSentTweet(tweet)
 
-	status := fmt.Sprintf("@%s it's stored on the web @ http://relay.getombuds.org and in the public record. https://twitter.com/%s/status/%d",
+	status := fmt.Sprintf("@%s it's stored in public record and relayed to the web via http://relay.getombuds.org https://twitter.com/%s/status/%d",
 		tweet.User.ScreenName, tweet.User.ScreenName, tweet.Id)
 	_, err := s.consumer.Post(
 		"https://api.twitter.com/1.1/statuses/update.json",
@@ -293,31 +348,18 @@ func (s *server) handleTweet(str string) error {
 
 	if s.canSend() {
 
-		unlockCmd := s.makeUnlockCmd()
-		_, err = s.rpcsend(unlockCmd)
+		wireBltn, rtText := s.makeBltn(tweet)
+		txid, err := ombpublish.PublishBulletin(s.rpcClient, wireBltn, *s.pubParams)
 		if err != nil {
-			log.Printf("Error unlocking the wallet: %s\n", err)
+			log.Printf("Error sending the bltn: %s\n", err)
 			s.storeFailed(tweet)
 			return nil
 		}
 
-		bltnCmd, rtText := s.makeBltn(tweet)
-		txid, err := s.rpcsend(bltnCmd)
-		if err != nil {
-			log.Printf("Sending the tweet failed: %s\n", err)
-			s.storeFailed(tweet)
-			return nil
-		}
+		// s.makeUnlock
+		// NewWalletCmd
 
-		lockCmd := btcjson.NewWalletLockCmd()
-		_, err = s.rpcsend(lockCmd)
-		if err != nil {
-			log.Printf("Error locking the wallet: %s\n", err)
-			s.storeFailed(tweet)
-			return nil
-		}
-
-		err = s.retweet(txid, rtText, tweet)
+		err = s.retweet(txid.String(), rtText, tweet)
 		if err != nil {
 			log.Printf("Retweet failed: %s\n", err)
 			return nil
@@ -344,20 +386,20 @@ func formatStatusText(tweet *Tweet) string {
 	return s
 }
 
-func (s *server) makeBltn(tweet *Tweet) (interface{}, string) {
-    sn := tweet.User.ScreenName
+func (s *server) makeBltn(tweet *Tweet) (*ombwire.Bulletin, string) {
+	sn := tweet.User.ScreenName
 
-    userLink := fmt.Sprintf("[@%s](https://twitter.com/%s)", sn, sn)
-    postLink := fmt.Sprintf("[Twitter](https://twitter.com/%s/status/%d)", sn, tweet.Id)
-	rtText := fmt.Sprintf("First seen posted by %s on %s",
+	userLink := fmt.Sprintf("[@%s](https://twitter.com/%s)", sn, sn)
+	postLink := fmt.Sprintf("[Twitter](https://twitter.com/%s/status/%d)", sn, tweet.Id)
+	rtText := fmt.Sprintf("First seen posted by %s at %s",
 		userLink, postLink)
 
 	richText := formatStatusText(tweet)
 
 	msg := fmt.Sprintf("%s \n\n\n<code>\n%s\n</code>", rtText, richText)
-	board := fmt.Sprintf("Testnet %s Log", s.cfg.Hashtag)
 
-	bltn, _ := btcjson.NewCmd("sendbulletin", s.cfg.SendAddress, board, msg)
+	now := uint64(time.Now().Unix())
+	bltn := ombwire.NewBulletin(msg, now, nil)
 
 	return bltn, rtText
 }

@@ -11,7 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/btcsuite/btcd/btcjson/v2/btcjson"
+	"github.com/btcsuite/btcd/btcjson"
+	"github.com/btcsuite/btcd/chaincfg"
 	flags "github.com/btcsuite/go-flags"
 	"github.com/soapboxsys/ombudslib/ombutil"
 )
@@ -24,13 +25,13 @@ const (
 )
 
 var (
-	ombudsCoreHome        = ombutil.AppDataDir("ombudscore", false)
-	btcdHomeDir           = filepath.Join(ombudsCoreHome, "node")
+	ombudsNodeHome        = ombutil.AppDataDir("ombnode", false)
+	btcdHomeDir           = filepath.Join(ombudsNodeHome, "node")
 	retweeterHomeDir      = ombutil.AppDataDir("retweeters", false)
 	defaultConfigFile     = filepath.Join(retweeterHomeDir, "serv.conf")
 	defaultRPCServer      = "localhost"
-	defaultRPCCertFile    = filepath.Join(ombudsCoreHome, "rpc.cert")
-	defaultWalletCertFile = filepath.Join(ombudsCoreHome, "rpc.cert")
+	defaultRPCCertFile    = filepath.Join(ombudsNodeHome, "rpc.cert")
+	defaultWalletCertFile = filepath.Join(ombudsNodeHome, "rpc.cert")
 	defaultAccessToken    = filepath.Join(retweeterHomeDir, "token.json")
 )
 
@@ -51,8 +52,7 @@ type config struct {
 	ConsumerSecret   string `long:"consumersecret" description:"Twitter API consumer secret"`
 	AccessTokenFile  string `long:"accesstoken" short:"t" description:"The name of the file the access token is stored in."`
 	Hashtag          string `long:"hashtag" short:"h" description:"The hashtag to track."`
-	SendAddress      string `long:"sendingaddress" short:"a" description:"The address to send bulletins from."`
-	WalletPassphrase string `long:"walletpassphrase" descriptioin:"The wallet's passphrase for sending."`
+	WalletPassphrase string `long:"walletpassphrase" description:"The wallet's passphrase for sending."`
 }
 
 func hasField(name, s string) {
@@ -175,6 +175,12 @@ func loadConfig() (*config, []string, error) {
 		return nil, nil, err
 	}
 
+	// Set activeNet for the application
+	activeNet = chaincfg.MainNetParams
+	if cfg.TestNet3 {
+		activeNet = chaincfg.TestNet3Params
+	}
+
 	// Handle environment variable expansion in the RPC certificate path.
 	cfg.RPCCert = cleanAndExpandPath(cfg.RPCCert)
 
@@ -184,7 +190,7 @@ func loadConfig() (*config, []string, error) {
 		false, true)
 
 	hasField("hashtag", cfg.Hashtag)
-	hasField("sending address", cfg.SendAddress)
+	//hasField("sending address", cfg.SendAddress)
 	hasField("consumer key", cfg.ConsumerKey)
 	hasField("consumer secret", cfg.ConsumerSecret)
 	hasField("wallet passphrase", cfg.WalletPassphrase)
