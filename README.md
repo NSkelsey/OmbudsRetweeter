@@ -6,7 +6,7 @@ This is a server daemon for replicating content from Twitter into the public rec
 When a tweet with `#RecordThisPlease` and the server's Twitter bot username is created, this bot does three things.
 1) It turns the tweet into a bulletin, 2) it ensures that bulletin is stored in the public record and, 3) it replies to the user informing them if it worked or not. 
 
-This bulletin can be viewed in the public record by clients that host it or by a web service that relays it. This repository also contains code for a web service that relays it. An example of that service live on the internet is sporadically viewable at [relay.getombuds.org](http://relay.getombuds.org). 
+This bulletin can be viewed in the public record by clients that host it or by a web service that relays it. This repository also contains code for a web service that relays it. An example of that service live on the internet is sporadically viewable at [relay.getombuds.org](http://relay.getombuds.org). Future iterations of the system will have third parties endorsement of replicated content that makes the original resource non-repudiable.
 
 If none of that made much sense, the picture below may help explain the architecture of the systems involved. Steps 1, 2, and, 3 are labeled below.
 
