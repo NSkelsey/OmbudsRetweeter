@@ -4,7 +4,7 @@ This is a server daemon for replicating content from Twitter into the public rec
 ### How does it work?
 
 When a tweet with `#RecordThisPlease` and the server's Twitter bot username is created, this bot does three things.
-1) It turns the tweet into a bulletin, 2) it ensures that bulletin is stored in the public record and 3) it replies to the user informing them if it worked or not. 
+1) It turns the tweet into a bulletin, 2) it ensures that bulletin is stored in the public record and, 3) it replies to the user informing them if it worked or not. 
 
 This bulletin can be viewed in the public record by clients that host it or by a web service that relays it. This repository also contains code for a web service that relays it. An example of that service live on the internet is sporadically viewable at [relay.getombuds.org](http://relay.getombuds.org). 
 
@@ -17,10 +17,21 @@ It's very simple. Tweet at an OmbudsRetweeter bot with `#RecordThisPlease`
 
 The image below is an example of an exchange between a twitter user and our testnetwork retweeting bot.
 
-<img alt="Stored tweet" src="http://i.imgur.com/XFjzkRy.png" "width"="50px">
+Note that the tweet by `@_nskelsey_` is missing `#RecordThisPlease`.
+
+```
+
+```
+
+![Stored tweet](http://i.imgur.com/XFjzkRy.png | width=200)
 
 Alternatively, you can record someone else's tweet by replying to their original tweet and mentioning the retweet bot (and including `#RecordThisPlease`). Below is an example exchange where @_nskelsey_ permanently records what @askuck ~~twat~~ tweeted in the public record.
-<img alt="Stored tweet" src="http://i.imgur.com/9Y6pyBE.png" "width"="50px">
+
+```
+
+```
+
+![Stored tweet](http://i.imgur.com/9Y6pyBE.png | width=200)
 
 ### Running a Bot
 
