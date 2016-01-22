@@ -8,20 +8,19 @@ When a tweet with `#RecordThisPlease` and the server's Twitter bot username is c
 
 This bulletin can be viewed in the public record by clients that host it or by a web service that relays it. This repository also contains code for a web service that relays it. An example of that service live on the internet is sporadically viewable at [relay.getombuds.org](http://relay.getombuds.org). 
 
-If none of that made much sense, the picture below may help explain the architecture of the systems involved. Steps 1, 2, and 3 are labeled below.
+If none of that made much sense, the picture below may help explain the architecture of the systems involved. Steps 1, 2, and, 3 are labeled below.
 
-![System Architecture](https://imgur.com/blah)
+![System Architecture](https://imgur.com/)
 
 ### How Do I Use It?
 It's very simple. Tweet at an OmbudsRetweeter bot with `#RecordThisPlease`
 
 The image below is an example of an exchange between a twitter user and our testnetwork retweeting bot.
 
-![Stored tweet](https://imgur/blah)
+<img alt="Stored tweet" src="http://i.imgur.com/XFjzkRy.png" "width"="50px">
 
 Alternatively, you can record someone else's tweet by replying to their original tweet and mentioning the retweet bot (and including `#RecordThisPlease`). Below is an example exchange where @_nskelsey_ permanently records what @askuck ~~twat~~ tweeted in the public record.
-
-![Targeted Tweet](https://imgur/blah)
+<img alt="Stored tweet" src="http://i.imgur.com/9Y6pyBE.png" "width"="50px">
 
 ### Running a Bot
 
