@@ -9,6 +9,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/btcsuite/btcd/btcjson"
@@ -59,6 +60,19 @@ func (s *server) detectTweet(str string) bool {
 
 	// Ignore tweets from the bot itself.
 	if tweet.User.ScreenName == s.cfg.BotScreenName {
+		return false
+	}
+
+	// Ignore tweets that do not have #RecordThisPlease
+	noPlease := true
+	for _, ht := range tweet.Ents.HashTags {
+		if strings.ToLower(ht.Text) == "recordthisplease" {
+			noPlease = false
+		}
+	}
+
+	if noPlease {
+		log.Println("Failed: No please in tweet. Try again")
 		return false
 	}
 
