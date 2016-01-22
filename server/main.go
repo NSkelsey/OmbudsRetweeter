@@ -108,6 +108,7 @@ func newServer(cfg *config) (*server, error) {
 
 	client := createRPCClient(cfg)
 	pubParams := ombpublish.NormalParams(&activeNet, cfg.WalletPassphrase)
+	pubParams.Verbose = false
 
 	s := &server{
 		cfg:        cfg,
@@ -174,7 +175,7 @@ func (s *server) tryToReconnect() (*bufio.Reader, error) {
 		}
 
 		reader := bufio.NewReader(response.Body)
-		log.Printf("Reconnected to %s stream\n", s.cfg.Hashtag)
+		log.Printf("Success: Reconnected to %s stream\n", s.cfg.Hashtag)
 		return reader, nil
 	}
 	return nil, fmt.Errorf("Could not reconnect after retrying...")
@@ -270,7 +271,7 @@ func (s *server) handleIncomingTweet(str string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Here's the parsed tweet: %s\n", tweet)
+	log.Printf("Info: pushed tweet by @%s id:[%d]\n", tweet.User.ScreenName, tweet.Id)
 
 	if s.canSend() {
 		// Figure out if the tweet is a reply and if so, record what the
@@ -284,7 +285,7 @@ func (s *server) handleIncomingTweet(str string) error {
 		if tweet.ParentIdStr != "" {
 			targetTweet, err = s.getTweet(tweet.ParentIdStr)
 			if err != nil {
-				log.Printf("Could not get parent tweet: %s", err)
+				log.Printf("Failed: could not get parent tweet: %s", err)
 				return nil
 			}
 		}
@@ -292,21 +293,22 @@ func (s *server) handleIncomingTweet(str string) error {
 
 		wireBltn := s.makeBltn(targetTweet)
 		txid, err := ombpublish.PublishBulletin(s.rpcClient, wireBltn, *s.pubParams)
-		if err != nil {
-			log.Printf("Error sending the bltn: %s\n", err)
+		if err != nil || txid == nil {
+			log.Printf("Failed: sending the bltn: %s\n", err)
 			s.storeFailed(tweet)
 			return nil
 		}
-		log.Println("Stored bltn: %s", txid)
+		log.Printf("Success: Stored bltn: %s", txid)
 
 		err = s.respondWithStatus(tweet, storedParent)
 		if err != nil {
-			log.Printf("Retweet failed: %s\n", err)
+			log.Printf("Failed: Retweet failed: %s\n", err)
 			return nil
 		}
+		log.Println("Success: Responded via Twitter")
 
 	} else {
-		log.Println("Ignoring tweet by: @%s", tweet.User.ScreenName)
+		log.Println("Failed: Ignoring tweet by: @%s", tweet.User.ScreenName)
 	}
 	return nil
 }

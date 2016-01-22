@@ -56,11 +56,11 @@ func (s *server) storeFailed(tweet *Tweet) error {
 		},
 		s.token,
 	)
-	log.Printf("Retweet FAILED\nTweet:%s\nResp:%v\n", tweet, resp)
-
 	if err != nil {
+		log.Printf("FAILED:\nReTweet:%s\nResp:%s\n", tweet, resp.Status)
 		return err
 	}
+	log.Println("Success: Retweeted the error")
 	return nil
 }
 
