@@ -10,7 +10,7 @@ This bulletin can be viewed in the public record by clients that host it or by a
 
 If none of that made much sense, the picture below may help explain the architecture of the systems involved. Steps 1, 2, and, 3 are labeled below.
 
-![System Architecture](https://imgur.com/)
+![System Architecture](http://i.imgur.com/tU10k7C.jpg)
 
 ### How Do I Use It?
 It's very simple. Tweet at an OmbudsRetweeter bot with `#RecordThisPlease`
